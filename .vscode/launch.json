@@ -1,0 +1,97 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "install-python",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "rsyncdirector_deploy.main",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "python",
+        "--installation-host",
+        "localhost",
+        "--source-tarball-url",
+        "https://www.python.org/ftp/python/3.13.11/Python-3.13.11.tgz",
+        "--source-tarball-md5sum",
+        "b0bea9e599a10ab3593ab60ace27b25d",
+      ]
+    },
+    {
+      "name": "configs",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "rsyncdirector_deploy.main",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "rsyncdirector",
+        "configs",
+        "--installation-host",
+        "localhost",
+        "--remote-python-path",
+        "/usr/local/python-3.13.11/bin/python3",
+        "--service-instance-identifier",
+        "to-backup01",
+        "--local-rsyncdirector-config-file-path",
+        "/data/home/rchapin/Documents/workspace/mootley_config/marge/configs/etc/rsyncdirector/marge-rsyncdirector.yaml",
+      ]
+    },
+    {
+      "name": "install-package-index",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "rsyncdirector_deploy.main",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "rsyncdirector",
+        "install",
+        "package-index",
+        "--installation-host",
+        "localhost",
+        "--remote-python-path",
+        "/usr/local/python-3.13.11/bin/python3",
+        "--package-index-url",
+        "https://nexus.dmz-svcs.mootley.local:8443/repository/pypi-dev/simple",
+        "--trusted-host",
+        "nexus.dmz-svcs.mootley.local",
+        "--package-index-credentials",
+      ]
+    },
+    {
+      "name": "install-from-whl",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "rsyncdirector_deploy.main",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "rsyncdirector",
+        "install",
+        "wheel",
+        "--installation-host",
+        "localhost",
+        "--remote-python-path",
+        "/usr/local/python-3.13.11/bin/python3",
+        "--local-whl-file-path",
+        "~/Documents/workspace/rsyncdirector/dist/rsyncdirector-0.0.1-py3-none-any.whl",
+      ]
+    },
+    {
+      "name": "ssh-add-known-host-keys",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "rsyncdirector_deploy.main",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "rsyncdirector",
+        "ssh",
+        "add-known-host-keys",
+        "--installation-host",
+        "localhost",
+        "-g",
+        "backup01.dmz-prod.mootley.local",
+        "-t",
+        "all",
+      ]
+    }
+  ]
+}

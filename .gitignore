@@ -1,0 +1,11 @@
+.project
+.pydevproject
+.idea
+*.pyc
+*.egg-info/
+*dist/
+*.swp
+*build/
+.coverage
+.env
+__pycache__/
