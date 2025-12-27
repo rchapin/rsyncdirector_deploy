@@ -23,31 +23,6 @@ class LinuxDistro(Enum):
     UNKNOWN = "unknown"
 
     @staticmethod
-    def get_enum_value_from_string(value_string: str) -> LinuxDistro:
-        try:
-            return LinuxDistro(value_string)
-        except ValueError:
-            return LinuxDistro.UNKNOWN
-
-    @staticmethod
-    def get_linux_distro(conn: Connection) -> LinuxDistro:
-        result = conn.run("cat /etc/os-release")
-        if not result.ok:
-            return LinuxDistro.UNKNOWN
-
-        retval = LinuxDistro.UNKNOWN
-        stdout = result.stdout.strip()
-        lines = stdout.splitlines()
-        for line in lines:
-            tokens = line.split("=")
-            if len(tokens) > 1:
-                if tokens[0] == "NAME":
-                    name = tokens[1].replace('"', "")
-                    retval = LinuxDistro.get_enum_value_from_string(name)
-                    break
-        return retval
-
-    @staticmethod
     def create_group(conn: Connection, group: str) -> Tuple[bool, int]:
         def get_group_id(group: str) -> Tuple[bool, int]:
             result = conn.run(f"getent group {group}", warn=True, hide=True)
@@ -89,11 +64,36 @@ class LinuxDistro(Enum):
                 return
 
             result = conn.run(
-                 f"useradd --gid {user_name} -m -s /usr/sbin/nologin {user_name}",
-                 warn=True,
-                 hide=True,
+                f"useradd --gid {user_name} -m -s /usr/sbin/nologin {user_name}",
+                warn=True,
+                hide=True,
             )
             if result.ok:
                 return
 
         raise Exception(f"unable to create user; user_name={user_name}")
+
+    @staticmethod
+    def get_enum_value_from_string(value_string: str) -> LinuxDistro:
+        try:
+            return LinuxDistro(value_string)
+        except ValueError:
+            return LinuxDistro.UNKNOWN
+
+    @staticmethod
+    def get_linux_distro(conn: Connection) -> LinuxDistro:
+        result = conn.run("cat /etc/os-release")
+        if not result.ok:
+            return LinuxDistro.UNKNOWN
+
+        retval = LinuxDistro.UNKNOWN
+        stdout = result.stdout.strip()
+        lines = stdout.splitlines()
+        for line in lines:
+            tokens = line.split("=")
+            if len(tokens) > 1:
+                if tokens[0] == "NAME":
+                    name = tokens[1].replace('"', "")
+                    retval = LinuxDistro.get_enum_value_from_string(name)
+                    break
+        return retval
