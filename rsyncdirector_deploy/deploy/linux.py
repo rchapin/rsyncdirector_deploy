@@ -97,3 +97,20 @@ class LinuxDistro(Enum):
                     retval = LinuxDistro.get_enum_value_from_string(name)
                     break
         return retval
+
+    @staticmethod
+    def install_packages(conn: Connection, distro: LinuxDistro, packages: str) -> None:
+        cmd = None
+        match distro:
+            case LinuxDistro.ALPINE:
+                cmd = f"apk add {packages}"
+            case LinuxDistro.DEBIAN | LinuxDistro.UBUNTU:
+                cmd = f"apt-get update && apt-get install -y {packages}"
+            case (
+                LinuxDistro.ALMALINUX | LinuxDistro.CENTOS | LinuxDistro.FEDORA | LinuxDistro.REDHAT
+            ):
+                cmd = f"dnf install -y {packages}"
+            case _:
+                raise Exception(f"unknown distro; distro={distro}")
+
+        result = conn.run(cmd)

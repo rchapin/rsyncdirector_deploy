@@ -28,12 +28,14 @@
         "configs",
         "--installation-host",
         "localhost",
+        "--remote-rsyncdirector-run-user",
+        "root",
         "--remote-python-path",
         "/usr/local/python-3.13.11/bin/python3",
         "--service-instance-identifier",
         "to-backup01",
         "--local-rsyncdirector-config-file-path",
-        "/data/home/rchapin/Documents/workspace/mootley_config/marge/configs/etc/rsyncdirector/marge-rsyncdirector.yaml",
+        "/data/home/rchapin/Documents/workspace/mootley_config/marge/configs/etc/rsyncdirector/rsyncdirector-to-backup01.yaml",
       ]
     },
     {

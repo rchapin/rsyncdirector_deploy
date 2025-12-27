@@ -117,30 +117,6 @@ class Install(ArgParser):
             )
 
     @staticmethod
-    def pip_install(
-        conn: Connection,
-        logger: Logger,
-        user: str,
-        packages: List = None,
-        package_index_url: str = None,
-        local_wheel_file_path: str = None,
-    ) -> None:
-        pip_opts = []
-        if package_index_url is not None:
-            pass
-        elif local_wheel_file_path is not None:
-            pass
-        else:
-            raise Exception(
-                f"cannot pip install without either complete nexus args, or a wheel file arg"
-            )
-
-        pip_opts = " ".join(pip_opts)
-
-        for package in packages:
-            conn.sudo(f"pip install {pip_opts} {package}", user=user)
-
-    @staticmethod
     def install(args: Namespace, logger: Logger) -> None:
         logger.info("Install.install")
         conn = Utils.get_connection(args.installation_host, args.installation_user)
