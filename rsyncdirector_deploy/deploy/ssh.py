@@ -44,16 +44,6 @@ class Ssh(ArgParser):
             formatter_class=ArgumentDefaultsHelpFormatter,
         )
 
-        # Ssh.parser.set_defaults(func=Ssh.help)
-        # Ssh.parser.add_argument(
-        #     "--hosts",
-        #     "-s",
-        #     type=str,
-        #     required=True,
-        #     # nargs="+",
-        #     help="A space-separated list of hosts",
-        # )
-
         # Create subparsers for different ssh operations.
         ssh_subparsers = Ssh.parser.add_subparsers(
             dest="ssh_configs", help="Choose ssh configuration operation", required=True
@@ -76,6 +66,14 @@ class Ssh(ArgParser):
                 "retreive all keys from the host: example rsa, ed25519, etc."
             ),
         )
+        add_known_host_keys.add_argument(
+            "--port",
+            "-r",
+            type=str,
+            required=False,
+            default="22",
+            help="Specify an alternate SSH port",
+        )
         add_known_host_keys.set_defaults(func=Ssh.add_known_host_keys)
 
     @staticmethod
@@ -89,10 +87,11 @@ class Ssh(ArgParser):
         user = args.remote_rsyncdirector_run_user
         host = args.installation_host
 
-        def add_key(conn: Connection, host: str, type: str) -> None:
-            opts = ""
+        def add_key(conn: Connection, host: str, port: str, type: str) -> None:
+            opts = [f"-p {port}"]
             if type != "all":
-                opts = f"-t {type}"
+                opts.append(f"-t {type}")
+            opts = " ".join(opts)
             cmd = f"ssh-keyscan {opts} -H {host}"
             result = conn.sudo(cmd, user=user, warn=True, hide=False)
             if not result.ok:
@@ -123,10 +122,10 @@ class Ssh(ArgParser):
         for host in args.hosts:
             conn.sudo(f"ssh-keygen -R {host}", user=user)
             if len(args.type) == 1 and args.type[0] == "all":
-                add_key(conn, host, "all")
+                add_key(conn, host, args.port, "all")
                 continue
             for t in args.type:
-                add_key(conn, host, t)
+                add_key(conn, host, args.port, t)
 
     @staticmethod
     def get_home(conn: Connection, host: str, user: str) -> str:
