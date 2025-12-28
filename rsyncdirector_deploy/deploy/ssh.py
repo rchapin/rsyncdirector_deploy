@@ -5,8 +5,7 @@
 # All rights reserved.
 
 import os
-
-# from __future__ import annotations
+import sys
 from argparse import ArgumentParser, Namespace, ArgumentDefaultsHelpFormatter
 from fabric import Connection
 from logging import Logger
@@ -117,7 +116,7 @@ class Ssh(ArgParser):
         )
         if confirmation != "yes":
             logger.info(f"Exiting without adding known host keys; {user}@{host} hosts={args.hosts}")
-            os._exit(0)
+            sys.exit(0)
 
         for host in args.hosts:
             conn.sudo(f"ssh-keygen -R {host}", user=user)

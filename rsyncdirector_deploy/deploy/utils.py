@@ -4,7 +4,7 @@
 # Copyright (c) 2019, Ryan Chapin, https//:www.ryanchapin.com
 # All rights reserved.
 
-import os
+import sys
 import yaml
 from fabric import Connection
 from logging import Logger
@@ -55,6 +55,6 @@ class Utils(object):
                     "Either delete the existing dir or re-run the "
                     "installation providing an alternate target directory."
                 )
-                os._exit(0)
+                sys.exit(0)
         else:
             logger.info(f"no existing directory to delete; path={path}")

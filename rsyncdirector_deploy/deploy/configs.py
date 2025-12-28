@@ -149,7 +149,7 @@ class Configs(ArgParser):
                 "data": run_sh_hydrated,
                 "remote_path": os.path.join(os.sep, REMOTE_CONFIG_DIR, "rsyncdirector.sh"),
                 "user_group": f"{args.remote_rsyncdirector_run_user}:",
-                "perms": "774",
+                "perms": "744",
             }
         )
 
@@ -178,6 +178,7 @@ class Configs(ArgParser):
             remote_path = file["remote_path"]
             conn.put(StringIO(file["data"]), remote_path)
             conn.run(f"chown {file["user_group"]} {remote_path}")
+            conn.run(f"chmod {file["perms"]} {remote_path}")
         conn.run("systemctl daemon-reload")
         conn.run("systemctl restart logrotate")
         conn.close()
