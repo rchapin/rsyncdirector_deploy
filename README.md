@@ -6,6 +6,7 @@ A command line program for automating the deployment of [`rsyncdirector`](https:
 
 ### Create a Virtual Environment
 1. Ensure that there is a compatible version of Python installed. See `pyproject.toml` for details.
+
 1. Export the path to the Python interpreter and the path to the virtenv and create and source the virtenv.
     ```
     export PYTHON_PATH=<path-to-your-interpreter>
@@ -22,6 +23,7 @@ pip install rsyncdirector_deploy
 ```
 
 #### Build and Install from Wheel
+
 1.  Build
     ```
     pip install -r ./requirements_dev.txt && \
@@ -29,56 +31,44 @@ pip install rsyncdirector_deploy
     twine check dist/*
     ```
 
-1. Install the wheel file now ind the `dist/` dir
+1. Install the wheel file
     ```
     pip install ./dist/rsyncdirector_deploy-<version>-py3-none-any.whl
     ```
 
 1. Run `rsyncdirector_deploy -h` to confirm installation and to see details on how to run it.
 
-## Using Deployment Tool to Install RsyncDirector
+### Distribute SSH Keys
+The `rsyncdirector_deploy` program uses the Python [Fabric](https://www.fabfile.org/) library which depends on the Python [Paramiko](https://www.paramiko.org/) library for the core SSH protocol implementation to run commands on the remote hosts over SSH.  SSH connections are currently authenticated using passphrase-less SSH keys.
 
-Following are the big pieces required to run `rynscdirector`
-1. Create an optional `rsyncdirector` user on the host where you want to install it
-1. Distribute SSH keys for the aforementioned user to the remote host(s) to which you will be `rsync`ing data
-1. Build an `rsyncdirector.yaml` config file to define the data that you want to `rsync`
-1. Deploy `rsyncdirector` configurations
-1. Install the `rsyncdirector` application
-
-### Creation of `rsyncdirector` user
-The user under which `rsyncdirector` runs MUST have read access to all data to be `rsync'ed.  In many cases, this can just be the `root` user to avoid having to create an additional user and ensure that the user has read access to all of the source data.
-
-
-
-
-## Setup
 1. Distribute public SSH keys for the user under which you will run the deployment program on your localhost to the `root` user on the hosts on which you want to install `rsyncdirector`.
-1. Export the path to a compatible version of Python
-    ```
-    export PYTHON_PATH=<path-to-python>
-    ```
-1. Create a virtual environment with an appropriate version of Python.  See the `pyproject.toml` file for the required version.  Change directories to the root of the `deployment` directory.
-    ```
-    $PYTHON_PATH -mvenv ~/.virtualenvs/rsyncdirector_deployment && \
-    . ~/.virtualenvs/rsyncdirector_deployment/bin/activate && \
-    pip install -r ./requirements.txt
-    ```
-1. Run `deploy-rsyncdirector -h` to ensure it works correctly.
 
-## Installation
+## Using the Deployment Tool to Install RsyncDirector
+Following is an outline of the operations and commands required to run `rynscdirector`.  The `rsyncdirector_deployment` tool automates all of the following operations except the distribution of keys.
 
-1. Install Python on the remote host:  Run `deploy-rsyncdirector python -h` for details.
-1. Install `rsyncdirector` configs on the target host: Run `deploy-rsyncdirector rsyncdirector configs -h` for details.
-1. Install `rsyncdirector` application on the target host: Run `deploy-rsyncdirector rsyncdirector install -h` for details.
+1. Create an `rsyncdirector.yaml` config file to define the data that you want to `rsync`.  See the [`rsyncdirector.yaml` file](https://github.com/rchapin/rsyncdirector/blob/main/rsyncdirector/resources/rsyncdirector.yaml) for a complete example with explanation.
 
-Once installed, on the hosts on which you installed `rsyndirector` you will need to distribute SSH keys for the user under which the `rsyncdirctor` program is running on the hosts to which you will be `rsync`ing data.  The deployment program will create the user with the `/usr/sbin/nologin` shell specified, so to generate a set of keys, you will need to run the following, as root, on that host
-```
-sudo -u rsyncdirector ssh-keygen
-```
-Once you have your key pair, distribute the public key to the user and hosts to which you want to `rsync` data and make sure to ssh and accept the fingerprint.
-```
-sudo -u rsyncdirector ssh <user-name>@<remote-host> "ls"
-```
+1. Install Python on the target host:
+    ```
+    rsyncdirector_deploy python -h
+    ```
+
+1. Install `rsyncdirector` configs on the target host and optionally create an `rsyncdirector` user under which the application will run.  The user under which `rsyncdirector` runs MUST have read access to all data to be `rsync`ed.  In many cases, this can just be the `root` user to avoid having to create an additional user and ensure that the user has read access to all of the source data.
+    ```
+    rsyncdirector_deploy rsyncdirector configs -h
+    ```
+
+1. Install the `rsyncdirector` application
+    ```
+    rsyncdirector_deploy rsyncdirector install -h
+    ```
+
+1. Distribute SSH keys for the aforementioned user to the remote host(s) to which you will be syncing data
+    Create ssh key pairs for the aforementioned user under which the `rsyncdirector` will run and distribute the public keys to the users on the remote hosts to which you will be syncing data.
+
+    Best practice is to create a non-root user on the remote host to which data will be synced and then have create an `rsyncdirector` configuration that connects using that user.
+
+    For example: in order to be able to read any files on the source host, run the `rsyncdirector` as root.  On the remote host to which data is to be synced create a `backup` user and create a directory where the `backup` users has `r-w-x` permissions.  Create an ssh key-pair for the `root` user on the localhost and distribute the public key to the remote host adding it to the `backup` user's `authorized_keys` file.
 
 ## Development
 Do the following if you want to develop and debug the installation scripts using VSCode.

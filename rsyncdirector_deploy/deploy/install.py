@@ -175,7 +175,9 @@ class Install(ArgParser):
             )
 
         pkg = f"rsyncdirector=={args.version}" if args.version != "latest" else "rsyncdirector"
-        pip_opts = [f"--index-url {url}"]
+        pip_opts = []
+        if url:
+            pip_opts = [f"--index-url {url}"]
         if args.trusted_host:
             pip_opts.append(f"--trusted-host {args.trusted_host}")
         pip_opts = " ".join(pip_opts)
