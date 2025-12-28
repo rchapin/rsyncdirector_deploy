@@ -5,8 +5,8 @@ A command line program for automating the deployment of [`rsyncdirector`](https:
 ## Install RsyncDirector Deployment
 
 ### Create a Virtual Environment
-1. Ensure that you have a compatible version of Python installed. See `pyproject.toml` for details.
-1. Export the path to your Python interpreter and the path to our virtenv and create and source the virtenv.
+1. Ensure that there is a compatible version of Python installed. See `pyproject.toml` for details.
+1. Export the path to the Python interpreter and the path to the virtenv and create and source the virtenv.
     ```
     export PYTHON_PATH=<path-to-your-interpreter>
     export VIRT_ENV_PATH=<path-to-virt-env-parent-dir>
