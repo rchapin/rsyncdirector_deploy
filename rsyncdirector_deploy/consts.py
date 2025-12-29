@@ -1,7 +1,7 @@
 # This software is released under the Revised BSD License.
 # See LICENSE for details
 #
-# Copyright (c) 2019, Ryan Chapin, https//:www.ryanchapin.com
+# Copyright (c) 2025, Ryan Chapin, https//:www.ryanchapin.com
 # All rights reserved.
 
 REMOTE_CONFIG_DIR = "/etc/rsyncdirector"
