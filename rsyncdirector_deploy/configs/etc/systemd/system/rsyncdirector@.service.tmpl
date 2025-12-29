@@ -1,0 +1,30 @@
+[Unit]
+Description=RsyncDirector %i
+After=network.target
+
+[Service]
+# Note: setting PYTHONUNBUFFERED is necessary to see the output of this service in the journal
+# See https://docs.python.org/2/using/cmdline.html#envvar-PYTHONUNBUFFERED
+Environment=PYTHONUNBUFFERED=true
+
+EnvironmentFile=/etc/rsyncdirector/rsyncdirector-%i.env
+
+User=$user
+Group=$group
+
+ExecStart=/etc/rsyncdirector/rsyncdirector.sh
+
+Restart=on-failure
+
+TimeoutStopSec=60
+StartLimitInterval=60
+StartLimitBurst=5
+RestartSec=10
+
+StandardOutput=append:/var/log/rsyncdirector/rsyncdirector-%i.log
+StandardError=inherit
+
+SyslogIdentifier=rsyncdirector
+
+[Install]
+WantedBy=multi-user.target
