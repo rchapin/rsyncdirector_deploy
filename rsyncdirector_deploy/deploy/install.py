@@ -198,3 +198,4 @@ class Install(ArgParser):
         conn.sudo(
             f"{venv_pip} install {remote_whl_file_path}", user=args.remote_rsyncdirector_run_user
         )
+        conn.run(f"rm {remote_whl_file_path}")
