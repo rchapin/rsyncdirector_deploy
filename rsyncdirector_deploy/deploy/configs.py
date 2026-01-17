@@ -68,7 +68,7 @@ class Configs(ArgParser):
 
         # Ensure that logrotate is installed.
         distro = LinuxDistro.get_linux_distro(conn)
-        LinuxDistro.install_packages(conn, distro, "logrotate", "sudo")
+        LinuxDistro.install_packages(conn, distro, ["logrotate", "sudo"])
         logger.info("logrotate installed/verified")
 
         # Figure out the path to this file so that we can load the require config template files.
