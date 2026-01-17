@@ -68,7 +68,7 @@ class Configs(ArgParser):
 
         # Ensure that logrotate is installed.
         distro = LinuxDistro.get_linux_distro(conn)
-        LinuxDistro.install_packages(conn, distro, "logrotate")
+        LinuxDistro.install_packages(conn, distro, "logrotate", "sudo")
         logger.info("logrotate installed/verified")
 
         # Figure out the path to this file so that we can load the require config template files.
@@ -86,7 +86,7 @@ class Configs(ArgParser):
         for dir in [REMOTE_LOG_DIR, REMOTE_CONFIG_DIR, rsyncdirector_config["pid_file_dir"]]:
             conn.run(f"mkdir -p {dir}")
             conn.run(f"chown {args.remote_rsyncdirector_run_user}: {dir}")
-            conn.run(f"chmod 775 {dir}")
+            conn.run(f"chmod 755 {dir}")
 
         files = []
 
