@@ -7,7 +7,7 @@
 from __future__ import annotations
 from enum import Enum
 from fabric import Connection
-from typing import Tuple
+from typing import List, Tuple
 
 
 class LinuxDistro(Enum):
@@ -99,17 +99,18 @@ class LinuxDistro(Enum):
         return retval
 
     @staticmethod
-    def install_packages(conn: Connection, distro: LinuxDistro, packages: str) -> None:
+    def install_packages(conn: Connection, distro: LinuxDistro, packages: List[str]) -> None:
         cmd = None
+        packages_to_install = " ".join(packages)
         match distro:
             case LinuxDistro.ALPINE:
-                cmd = f"apk add {packages}"
+                cmd = f"apk add {packages_to_install}"
             case LinuxDistro.DEBIAN | LinuxDistro.UBUNTU:
-                cmd = f"apt-get update && apt-get install -y {packages}"
+                cmd = f"apt-get update && apt-get install -y {packages_to_install}"
             case (
                 LinuxDistro.ALMALINUX | LinuxDistro.CENTOS | LinuxDistro.FEDORA | LinuxDistro.REDHAT
             ):
-                cmd = f"dnf install -y {packages}"
+                cmd = f"dnf install -y {packages_to_install}"
             case _:
                 raise Exception(f"unknown distro; distro={distro}")
 
