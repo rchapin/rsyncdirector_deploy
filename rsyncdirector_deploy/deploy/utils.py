@@ -26,10 +26,12 @@ class Utils(object):
         with open(path, "r") as fh:
             return yaml.load(fh, Loader=yaml.FullLoader)
 
+    @staticmethod
     def load_file(path: Path) -> str:
         with open(path, "r") as fh:
             return fh.read()
 
+    @staticmethod
     def delete_dir(conn: Connection, logger: Logger, path: str, existing_dir_msg: str) -> None:
         # The directory may not exist.
         result = conn.run(f'test -d "{path}"', warn=True, hide=True)

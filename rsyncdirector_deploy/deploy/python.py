@@ -23,7 +23,7 @@ class Python(ArgParser):
     parser = None
 
     def __init__(self):
-        super(Python, self.__init__())
+        super().__init__()
 
     @staticmethod
     def add_args(subparsers, parents=[]):
@@ -103,13 +103,6 @@ class Python(ArgParser):
                 Utils.delete_dir(
                     conn, logger, remote_target_dir, "removing and rebuilding python installation"
                 )
-                # result = conn.run(f'test -d "{remote_target_dir}"', warn=True, hide=True)
-                # if result.ok:
-                # else:
-                #     logger.info(
-                #         "no existing python installation continuing to compile and "
-                #         f"install; remote_target_dir={remote_target_dir}"
-                #     )
 
                 with conn.cd(remote_tarball_dir):
                     conn.run(f"tar -xzvf {filename}")

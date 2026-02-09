@@ -24,7 +24,7 @@ class Install(ArgParser):
     parser = None
 
     def __init__(self):
-        super(Install, self.__init__())
+        super().__init__()
 
     @staticmethod
     def add_args(subparsers, parents=[]):
