@@ -33,9 +33,10 @@
         "--remote-python-path",
         "/usr/local/python-3.13.11/bin/python3",
         "--service-instance-identifier",
-        "to-backup01",
+        "marge",
         "--local-rsyncdirector-config-file-path",
-        "/data/home/rchapin/Documents/workspace/mootley_config/marge/configs/etc/rsyncdirector/rsyncdirector-to-backup01.yaml",
+        "/data/home/rchapin/Documents/workspace/mootley_config/marge/configs/etc/rsyncdirector/rsyncdirector-marge.yaml",
+        "--clear-existing-configs",
       ]
     },
     {
@@ -71,10 +72,12 @@
         "wheel",
         "--installation-host",
         "localhost",
+        "-u",
+        "root",
         "--remote-python-path",
         "/usr/local/python-3.13.11/bin/python3",
         "--local-whl-file-path",
-        "~/Documents/workspace/rsyncdirector/dist/rsyncdirector-0.0.1-py3-none-any.whl",
+        "~/Documents/workspace/rsyncdirector/dist/rsyncdirector-0.1.4-py3-none-any.whl",
       ]
     },
     {

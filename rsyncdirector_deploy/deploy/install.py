@@ -5,16 +5,19 @@
 # All rights reserved.
 
 import getpass
+import json
 import os
-from argparse import Namespace, ArgumentDefaultsHelpFormatter
+from argparse import ArgumentDefaultsHelpFormatter, Namespace
 from contextlib import contextmanager
-from fabric import Connection
 from logging import Logger
 from pathlib import Path
 from typing import List
+
+from fabric import Connection
+
 from rsyncdirector_deploy.argparser import ArgParser
-from rsyncdirector_deploy.deploy.utils import Utils
 from rsyncdirector_deploy.deploy.linux import LinuxDistro
+from rsyncdirector_deploy.deploy.utils import Utils
 
 REMOTE_VIRT_ENV_PARENT_DIR = "/usr/local"
 
@@ -103,10 +106,10 @@ class Install(ArgParser):
         Utils.delete_dir(conn, logger, path, "removing and recreating virtual environment")
         # result = conn.run(f"{python_path} -mvenv {path}", warn=True)
         result = conn.run(f"mkdir -p {path}", warn=True, hide=True)
-        if not result.ok:
+        if result is None or not result.ok:
             raise Exception(f"creating virtual env directory; path={path}, result={result}")
         result = conn.run(f"chown {user}: {path}")
-        if not result.ok:
+        if result is None or not result.ok:
             raise Exception(
                 f"chowning virtual env directory; path={path}, user={user}, result={result}"
             )
@@ -123,6 +126,7 @@ class Install(ArgParser):
 
         # Ensure that the required user and groups exist
         LinuxDistro.create_run_user(conn, args.remote_rsyncdirector_run_user)
+        Install.stop_all_service_units(logger, conn)
         Install.create_virtualenv(
             conn,
             logger,
@@ -199,3 +203,17 @@ class Install(ArgParser):
             f"{venv_pip} install {remote_whl_file_path}", user=args.remote_rsyncdirector_run_user
         )
         conn.run(f"rm {remote_whl_file_path}")
+
+    @staticmethod
+    def stop_all_service_units(logger: Logger, conn: Connection) -> None:
+        result = conn.run("systemctl list-units 'rsyncdirector@*.service' --output=json-pretty", warn=True, hide=True)
+        if result is None or not result.ok:
+            raise Exception(f"getting list of all rsyncdirector service units, result={result}")
+        units = json.loads(result.stdout)
+
+        for unit in units:
+            if "unit" not in unit:
+                logger.warning(f"unit entry did not have a 'unit' key, skipping; unit={unit}")
+                continue
+            logger.info(f"stopping unit; unit={unit}")
+            conn.run(f"systemctl stop {unit["unit"]}")

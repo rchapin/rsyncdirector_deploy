@@ -83,4 +83,5 @@ class RsyncDirector(ArgParser):
             "update either the configs or the version of the RsyncDirector."
         )
         print()
-        RsyncDirector.parser.print_help(sys.stderr)
+        if RsyncDirector.parser is not None:
+            RsyncDirector.parser.print_help(sys.stderr)

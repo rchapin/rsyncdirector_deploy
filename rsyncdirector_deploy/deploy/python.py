@@ -4,14 +4,16 @@
 # Copyright (c) 2025, Ryan Chapin, https//:www.ryanchapin.com
 # All rights reserved.
 
-import os
-import requests
-import tempfile
 import argparse
+import os
+import tempfile
 from argparse import Namespace
 from contextlib import chdir
-from invoke import run
 from logging import Logger
+
+import requests
+from invoke import run
+
 from rsyncdirector_deploy.argparser import ArgParser
 from rsyncdirector_deploy.deploy.utils import Utils
 
@@ -79,14 +81,19 @@ class Python(ArgParser):
             logger.info(f"Python tarball downloaded, file_path={file_path}")
             with chdir(temp_dir):
                 result = run(f"md5sum {file_path}")
-                if result.return_code != 0:
+                if result is not None:
+                    if result.return_code != 0:
+                        raise Exception(
+                            f"getting checksum for python tarball; file_path={file_path}, result={result}"
+                        )
+                    md5sum = result.stdout.split()[0]
+                    if args.source_tarball_md5sum != md5sum:
+                        raise Exception(
+                            f"md5sums did not match; expected={args.source_tarball_md5sum}, actual={md5sum}"
+                        )
+                else:
                     raise Exception(
-                        f"getting checksum for python tarball; file_path={file_path}, result={result}"
-                    )
-                md5sum = result.stdout.split()[0]
-                if args.source_tarball_md5sum != md5sum:
-                    raise Exception(
-                        f"md5sums did not match; expected={args.source_tarball_md5sum}, actual={md5sum}"
+                        f"no result returned when checking md5sum of tarball; file_path={file_path}"
                     )
 
                 remote_tarball_dir = os.path.join(os.sep, "var", "tmp", "python-src")
