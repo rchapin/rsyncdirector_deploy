@@ -81,19 +81,14 @@ class Python(ArgParser):
             logger.info(f"Python tarball downloaded, file_path={file_path}")
             with chdir(temp_dir):
                 result = run(f"md5sum {file_path}")
-                if result is not None:
-                    if result.return_code != 0:
-                        raise Exception(
-                            f"getting checksum for python tarball; file_path={file_path}, result={result}"
-                        )
-                    md5sum = result.stdout.split()[0]
-                    if args.source_tarball_md5sum != md5sum:
-                        raise Exception(
-                            f"md5sums did not match; expected={args.source_tarball_md5sum}, actual={md5sum}"
-                        )
-                else:
+                if result is None or result.return_code != 0:
                     raise Exception(
-                        f"no result returned when checking md5sum of tarball; file_path={file_path}"
+                        f"getting checksum for python tarball; file_path={file_path}, result={result}"
+                    )
+                md5sum = result.stdout.split()[0]
+                if args.source_tarball_md5sum != md5sum:
+                    raise Exception(
+                        f"md5sums did not match; expected={args.source_tarball_md5sum}, actual={md5sum}"
                     )
 
                 remote_tarball_dir = os.path.join(os.sep, "var", "tmp", "python-src")
