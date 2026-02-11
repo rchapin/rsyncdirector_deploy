@@ -203,7 +203,7 @@ class Configs(ArgParser):
         print(
             f"\nrsyncdirector config installation on host [{args.installation_host}] is complete\n"
             f"run 'systemctl start rsyncdirector@{args.service_instance_identifier}.service' to start\n"
-            f"and 'systemctl enble rsyncdirector@{args.service_instance_identifier}.service' to ensure it will start on boot",
+            f"and 'systemctl enable rsyncdirector@{args.service_instance_identifier}.service' to ensure it will start on boot",
             flush=True,
         )
 
