@@ -193,9 +193,11 @@ class Configs(ArgParser):
 
         for file in files:
             remote_path = file["remote_path"]
+            user_group = file["user_group"]
+            perms = file["perms"]
             conn.put(StringIO(file["data"]), remote_path)
-            conn.run(f"chown {file["user_group"]} {remote_path}")
-            conn.run(f"chmod {file["perms"]} {remote_path}")
+            conn.run(f"chown {user_group} {remote_path}")
+            conn.run(f"chmod {perms} {remote_path}")
         conn.run("systemctl daemon-reload")
         conn.run("systemctl restart logrotate")
         conn.close()
@@ -250,7 +252,7 @@ class Configs(ArgParser):
             # Delete all entries in the config dir except for any .pid files.
             # Using find avoids relying on shell glob behavior when the directory is empty.
             result = conn.run(
-                f"find {REMOTE_CONFIG_DIR} -mindepth 1 -maxdepth 1 ! -name '*.pid' -exec rm -rf {{}} +"
+                f"find {REMOTE_CONFIG_DIR} -mindepth 1 -maxdepth 1 ! -name '*.pid' -exec rm -f {{}} +"
             )
             if not result.ok:
                 raise Exception("deleting existing config files; " f"path={REMOTE_CONFIG_DIR}")

@@ -7,7 +7,6 @@
 import argparse
 import os
 import tempfile
-from argparse import Namespace
 from contextlib import chdir
 from logging import Logger
 
@@ -59,7 +58,7 @@ class Python(ArgParser):
         Python.parser.set_defaults(func=Python.install)
 
     @staticmethod
-    def install(args: Namespace, logger: Logger) -> None:
+    def install(args: argparse.Namespace, logger: Logger) -> None:
         logger.info("installing Python; args={args}")
         conn = Utils.get_connection(args.installation_host, args.installation_user)
 

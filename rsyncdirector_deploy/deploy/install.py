@@ -216,4 +216,5 @@ class Install(ArgParser):
                 logger.warning(f"unit entry did not have a 'unit' key, skipping; unit={unit}")
                 continue
             logger.info(f"stopping unit; unit={unit}")
-            conn.run(f"systemctl stop {unit["unit"]}")
+            unit_name = unit["unit"]
+            conn.run(f"systemctl stop {unit_name}")
