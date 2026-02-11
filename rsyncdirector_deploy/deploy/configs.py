@@ -217,7 +217,20 @@ class Configs(ArgParser):
     def clear_existing_configs(conn: Connection, logger: Logger, host: str) -> None:
         # DO NOT remove any .pid files if they are in this dir.
         result = conn.run(f"ls -1 {REMOTE_CONFIG_DIR}/* | grep -v '.pid'", warn=True, hide=True)
-        if result is None or not result.ok:
+        if result is None:
+            raise Exception(f"unable to get listing of [{REMOTE_CONFIG_DIR}] on installation host")
+
+        stdout = (result.stdout or "").strip()
+        # If the command exited non-zero but produced no output, treat this as "no non-pid files"
+        # and proceed without raising, since there is nothing to delete.
+        if not result.ok and stdout == "":
+            logger.info(
+                f"No non-pid config files found in [{REMOTE_CONFIG_DIR}] on installation host; "
+                "skipping deletion of existing configs."
+            )
+            return
+
+        if not result.ok:
             raise Exception(f"unable to get listing of [{REMOTE_CONFIG_DIR}] on installation host")
         print("deleting existing config files:")
         for line in result.stdout.splitlines():
