@@ -97,7 +97,7 @@ class Configs(ArgParser):
         rsyncdirector_config = Utils.load_yaml_file(args.local_rsyncdirector_config_file_path)
 
         remote_dirs = [REMOTE_LOG_DIR, REMOTE_CONFIG_DIR]
-        # Only create another remote dire if there is a pid file dir defined in the config.
+        # Only create another remote dir if there is a pid file dir defined in the config.
         if "pid_file_dir" in rsyncdirector_config:
             remote_dirs.append(rsyncdirector_config["pid_file_dir"])
         for dir in remote_dirs:
