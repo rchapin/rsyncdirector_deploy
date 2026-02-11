@@ -247,7 +247,11 @@ class Configs(ArgParser):
             .strip()
         )
         if confirmation == "yes":
-            result = conn.run(f"rm -rf {REMOTE_CONFIG_DIR}/*")
+            # Delete all entries in the config dir except for any .pid files.
+            # Using find avoids relying on shell glob behavior when the directory is empty.
+            result = conn.run(
+                f"find {REMOTE_CONFIG_DIR} -mindepth 1 -maxdepth 1 ! -name '*.pid' -exec rm -rf {{}} +"
+            )
             if not result.ok:
                 raise Exception("deleting existing config files; " f"path={REMOTE_CONFIG_DIR}")
         else:
