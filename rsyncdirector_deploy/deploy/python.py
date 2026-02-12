@@ -4,14 +4,15 @@
 # Copyright (c) 2025, Ryan Chapin, https//:www.ryanchapin.com
 # All rights reserved.
 
-import os
-import requests
-import tempfile
 import argparse
-from argparse import Namespace
+import os
+import tempfile
 from contextlib import chdir
-from invoke import run
 from logging import Logger
+
+import requests
+from invoke import run
+
 from rsyncdirector_deploy.argparser import ArgParser
 from rsyncdirector_deploy.deploy.utils import Utils
 
@@ -23,7 +24,7 @@ class Python(ArgParser):
     parser = None
 
     def __init__(self):
-        super(Python, self.__init__())
+        super().__init__()
 
     @staticmethod
     def add_args(subparsers, parents=[]):
@@ -57,7 +58,7 @@ class Python(ArgParser):
         Python.parser.set_defaults(func=Python.install)
 
     @staticmethod
-    def install(args: Namespace, logger: Logger) -> None:
+    def install(args: argparse.Namespace, logger: Logger) -> None:
         logger.info("installing Python; args={args}")
         conn = Utils.get_connection(args.installation_host, args.installation_user)
 
@@ -79,7 +80,7 @@ class Python(ArgParser):
             logger.info(f"Python tarball downloaded, file_path={file_path}")
             with chdir(temp_dir):
                 result = run(f"md5sum {file_path}")
-                if result.return_code != 0:
+                if result is None or result.return_code != 0:
                     raise Exception(
                         f"getting checksum for python tarball; file_path={file_path}, result={result}"
                     )
@@ -103,13 +104,6 @@ class Python(ArgParser):
                 Utils.delete_dir(
                     conn, logger, remote_target_dir, "removing and rebuilding python installation"
                 )
-                # result = conn.run(f'test -d "{remote_target_dir}"', warn=True, hide=True)
-                # if result.ok:
-                # else:
-                #     logger.info(
-                #         "no existing python installation continuing to compile and "
-                #         f"install; remote_target_dir={remote_target_dir}"
-                #     )
 
                 with conn.cd(remote_tarball_dir):
                     conn.run(f"tar -xzvf {filename}")

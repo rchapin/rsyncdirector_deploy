@@ -22,7 +22,7 @@ StartLimitBurst=5
 RestartSec=10
 
 StandardOutput=append:/var/log/rsyncdirector/rsyncdirector-%i.log
-StandardError=inherit
+StandardError=append:/var/log/rsyncdirector/rsyncdirector-%i.err
 
 SyslogIdentifier=rsyncdirector
 

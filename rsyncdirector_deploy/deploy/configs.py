@@ -5,20 +5,22 @@
 # All rights reserved.
 
 from __future__ import annotations
+
 import os
 import string
-from argparse import Namespace, ArgumentDefaultsHelpFormatter
+import sys
+from argparse import ArgumentDefaultsHelpFormatter, Namespace
 from io import StringIO
 from logging import Logger
 from pathlib import Path
-from rsyncdirector_deploy.argparser import ArgParser
-from rsyncdirector_deploy.consts import (
-    REMOTE_CONFIG_DIR,
-    REMOTE_LOG_DIR,
-)
-from rsyncdirector_deploy.deploy.utils import Utils
-from rsyncdirector_deploy.deploy.linux import LinuxDistro
 from typing import Dict
+
+from fabric import Connection
+
+from rsyncdirector_deploy.argparser import ArgParser
+from rsyncdirector_deploy.consts import REMOTE_CONFIG_DIR, REMOTE_LOG_DIR
+from rsyncdirector_deploy.deploy.linux import LinuxDistro
+from rsyncdirector_deploy.deploy.utils import Utils
 
 
 class Configs(ArgParser):
@@ -26,7 +28,7 @@ class Configs(ArgParser):
     parser = None
 
     def __init__(self):
-        super(Configs, self.__init__())
+        super().__init__()
 
     @staticmethod
     def add_args(subparsers, parents=[]):
@@ -61,10 +63,20 @@ class Configs(ArgParser):
             help="Path on the local host to the rsyncdirector config file to be deployed to the installation host",
         )
 
+        Configs.parser.add_argument(
+            "--clear-existing-configs",
+            "-k",
+            action="store_true",
+            help="Will clear any existing configs in the /etc/rsyncdirector dir on the installation host",
+        )
+
     @staticmethod
     def install(args: Namespace, logger: Logger):
         logger.info("Configs.install")
         conn = Utils.get_connection(args.installation_host, args.installation_user)
+
+        if args.clear_existing_configs:
+            Configs.clear_existing_configs(conn, logger, args.installation_host)
 
         # Ensure that logrotate is installed.
         distro = LinuxDistro.get_linux_distro(conn)
@@ -83,7 +95,12 @@ class Configs(ArgParser):
 
         LinuxDistro.create_run_user(conn, args.remote_rsyncdirector_run_user)
         rsyncdirector_config = Utils.load_yaml_file(args.local_rsyncdirector_config_file_path)
-        for dir in [REMOTE_LOG_DIR, REMOTE_CONFIG_DIR, rsyncdirector_config["pid_file_dir"]]:
+
+        remote_dirs = [REMOTE_LOG_DIR, REMOTE_CONFIG_DIR]
+        # Only create another remote dir if there is a pid file dir defined in the config.
+        if "pid_file_dir" in rsyncdirector_config:
+            remote_dirs.append(rsyncdirector_config["pid_file_dir"])
+        for dir in remote_dirs:
             conn.run(f"mkdir -p {dir}")
             conn.run(f"chown {args.remote_rsyncdirector_run_user}: {dir}")
             conn.run(f"chmod 755 {dir}")
@@ -176,15 +193,72 @@ class Configs(ArgParser):
 
         for file in files:
             remote_path = file["remote_path"]
+            user_group = file["user_group"]
+            perms = file["perms"]
             conn.put(StringIO(file["data"]), remote_path)
-            conn.run(f"chown {file["user_group"]} {remote_path}")
-            conn.run(f"chmod {file["perms"]} {remote_path}")
+            conn.run(f"chown {user_group} {remote_path}")
+            conn.run(f"chmod {perms} {remote_path}")
         conn.run("systemctl daemon-reload")
         conn.run("systemctl restart logrotate")
         conn.close()
 
+        print(
+            f"\nrsyncdirector config installation on host [{args.installation_host}] is complete\n"
+            f"run 'systemctl start rsyncdirector@{args.service_instance_identifier}.service' to start\n"
+            f"and 'systemctl enable rsyncdirector@{args.service_instance_identifier}.service' to ensure it will start on boot",
+            flush=True,
+        )
+
     @staticmethod
-    def load_and_hydrate_tmpl(tmpl_file_path: str, data: Dict) -> str:
+    def load_and_hydrate_tmpl(tmpl_file_path: Path, data: Dict) -> str:
         tmpl_str = Utils.load_file(tmpl_file_path)
         tmpl = string.Template(tmpl_str)
         return tmpl.substitute(data)
+
+    @staticmethod
+    def clear_existing_configs(conn: Connection, logger: Logger, host: str) -> None:
+        # DO NOT remove any .pid files if they are in this dir.
+        result = conn.run(f"ls -1 {REMOTE_CONFIG_DIR}/* | grep -v '.pid'", warn=True, hide=True)
+        if result is None:
+            raise Exception(f"unable to get listing of [{REMOTE_CONFIG_DIR}] on installation host")
+
+        stdout = (result.stdout or "").strip()
+        # If the command exited non-zero but produced no output, treat this as "no non-pid files"
+        # and proceed without raising, since there is nothing to delete.
+        if not result.ok and stdout == "":
+            logger.info(
+                f"No non-pid config files found in [{REMOTE_CONFIG_DIR}] on installation host; "
+                "skipping deletion of existing configs."
+            )
+            return
+
+        if not result.ok:
+            raise Exception(f"unable to get listing of [{REMOTE_CONFIG_DIR}] on installation host")
+        print("deleting existing config files:")
+        for line in result.stdout.splitlines():
+            print(line)
+
+        confirmation = (
+            input(
+                f"Running install configs with --clear-existing-configs flag. "
+                f"This will clean all existing config files from the [{REMOTE_CONFIG_DIR}] "
+                f"directory on host [{host}], you could suffer data loss. "
+                "Do you want to continue? (yes/no): "
+            )
+            .lower()
+            .strip()
+        )
+        if confirmation == "yes":
+            # Delete all entries in the config dir except for any .pid files.
+            # Using find avoids relying on shell glob behavior when the directory is empty.
+            result = conn.run(
+                f"find {REMOTE_CONFIG_DIR} -mindepth 1 -maxdepth 1 ! -name '*.pid' -exec rm -f {{}} +"
+            )
+            if not result.ok:
+                raise Exception("deleting existing config files; " f"path={REMOTE_CONFIG_DIR}")
+        else:
+            logger.info(
+                "Exiting installation. Not deleting existing config files from "
+                f"remote dir [{REMOTE_CONFIG_DIR}]."
+            )
+            sys.exit(0)

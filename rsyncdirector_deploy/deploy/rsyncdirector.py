@@ -19,7 +19,7 @@ class RsyncDirector(ArgParser):
     parser = None
 
     def __init__(self):
-        super(RsyncDirector, self.__init__())
+        super().__init__()
 
     @staticmethod
     def add_args(subparsers, parents=[]):
@@ -83,4 +83,5 @@ class RsyncDirector(ArgParser):
             "update either the configs or the version of the RsyncDirector."
         )
         print()
-        RsyncDirector.parser.print_help(sys.stderr)
+        if RsyncDirector.parser is not None:
+            RsyncDirector.parser.print_help(sys.stderr)
